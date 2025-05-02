@@ -18,6 +18,8 @@ fn main() {
     let exit_window = Arc::new(Mutex::new(false));
     let exit_window_clone = exit_window.clone();
     let size_tuple = screen_size();
+
+    // flags are in order: borderless, mouse passthrough, window topmost, vsync, transparent, undecorated
     let flags: u32 = 32_768 + 16_384 + 4_096 + 64 + 16 + 8;
     unsafe {
         SetConfigFlags(flags);
@@ -36,15 +38,16 @@ fn main() {
     rl.set_exit_key(Some(KeyboardKey::KEY_F8));
     let mut pong = Pong::new();
 
+    let game_size: (i32, i32) = (800, 400);
+
     pong.set_game_size(Rectangle {
-        x: ((size_tuple.0 / 2) - (640 / 2)) as f32,
-        y: ((size_tuple.1 / 2) - (480 / 2)) as f32,
-        width: 640 as f32,
-        height: 480 as f32,
+        x: ((size_tuple.0 / 2) - (game_size.0 / 2)) as f32,
+        y: ((size_tuple.1 / 2) - (game_size.1 / 2)) as f32,
+        width: game_size.0 as f32,
+        height: game_size.1 as f32,
     });
 
     while !*exit_window.lock().unwrap() {
-
         let delta_time = rl.get_frame_time();
 
         let mut d = rl.begin_drawing(&thread);
@@ -56,6 +59,10 @@ fn main() {
         });
 
         d.draw_text(&format!("{:?}", delta_time), 10, 10, 100, Color::BLACK);
+
+        if pong.finished {
+            pong.reset();
+        }
 
         pong.draw_frame(d, delta_time);
     }

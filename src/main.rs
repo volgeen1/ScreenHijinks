@@ -2,7 +2,8 @@
 use pong::Pong;
 use mki::Keyboard;
 use raylib::{ffi::SetConfigFlags, prelude::*};
-use std::sync::{Arc, Mutex};
+use rand::prelude::*;
+use std::{sync::{Arc, Mutex}, time::{Duration, SystemTime}};
 use winapi::um::winuser::*;
 mod pong;
 
@@ -47,6 +48,10 @@ fn main() {
         height: game_size.1 as f32,
     });
 
+    let mut rng = rand::rng();
+    let mut now = SystemTime::now();
+    let cooldown = Duration::from_secs(rng.random_range(5..15) * 1);
+
     while !*exit_window.lock().unwrap() {
         let delta_time = rl.get_frame_time();
 
@@ -62,8 +67,11 @@ fn main() {
 
         if pong.finished {
             pong.reset();
+            now = SystemTime::now();
         }
-
-        pong.draw_frame(d, delta_time);
+        if now.elapsed().unwrap() > cooldown {
+            (&mut pong).draw_frame(d, delta_time);
+        }
+        
     }
 }

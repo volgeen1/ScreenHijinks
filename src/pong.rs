@@ -57,7 +57,7 @@ impl Pong {
     }
 
     fn pong_logic(&mut self, delta_time: f32) {
-        let paddle_speed = 200.0;
+        let paddle_speed = 150.0;
 
         self.pong_ball(delta_time);
 
@@ -70,6 +70,12 @@ impl Pong {
             && self.paddle1.y as i32 + self.paddle1.x as i32 / 2 < self.game_size.height as i32 / 2
         {
             self.paddle1.y += paddle_speed * delta_time;
+        }
+
+        if self.ball_pos.y < self.paddle2.y + self.game_size.y + (self.game_size.height / 2.0) {
+            self.paddle2.y -= paddle_speed * delta_time;
+        }else if self.ball_pos.y > self.paddle2.y + self.game_size.y + (self.game_size.height / 2.0) {
+            self.paddle2.y += paddle_speed * delta_time;
         }
     }
 

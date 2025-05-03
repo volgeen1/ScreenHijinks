@@ -61,6 +61,7 @@ impl Pong {
 
         self.pong_ball(delta_time);
 
+        // paddle1 controls
         if Keyboard::Up.is_pressed()
             && self.paddle1.y as i32 - self.paddle1.x as i32 / 2
                 > self.game_size.height as i32 / 2 * -1
@@ -72,6 +73,7 @@ impl Pong {
             self.paddle1.y += paddle_speed * delta_time;
         }
 
+        // paddle2 ai
         if self.ball_pos.y < self.paddle2.y + self.game_size.y + (self.game_size.height / 2.0) {
             self.paddle2.y -= paddle_speed * delta_time;
         }else if self.ball_pos.y > self.paddle2.y + self.game_size.y + (self.game_size.height / 2.0) {

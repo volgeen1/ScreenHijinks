@@ -7,3 +7,4 @@ edition = "2024"
 raylib ={ version = "5.5" }
 winapi = { version = "0.3", features = ["winuser"] }
 mki = "0.2.3"
+rand = "0.9.1"

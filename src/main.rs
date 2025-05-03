@@ -1,11 +1,12 @@
 #![windows_subsystem = "windows"]
-use pong::Pong;
-use mki::Keyboard;
+use mki::{bind_key, Action, InhibitEvent, Keyboard};
 use raylib::{ffi::SetConfigFlags, prelude::*};
 use rand::prelude::*;
 use std::{sync::{Arc, Mutex}, time::{Duration, SystemTime}};
 use winapi::um::winuser::*;
 mod pong;
+use pong::Pong;
+mod circles;
 
 fn screen_size() -> (i32, i32) {
     unsafe {
@@ -13,6 +14,15 @@ fn screen_size() -> (i32, i32) {
         let height = GetSystemMetrics(SM_CYSCREEN);
         return (width, height - 1);
     }
+}
+
+fn draw_title(d: &mut RaylibDrawHandle, title: &str) {
+    d.draw_text("current game:", 9, 9, 30, Color::WHITE);
+    d.draw_text("current game:", 11, 11, 30, Color::WHITE);
+    d.draw_text("current game:", 10, 10, 30, Color::BLACK);
+    d.draw_text(title, 9, 39, 50, Color::WHITE);
+    d.draw_text(title, 11, 41, 50, Color::WHITE);
+    d.draw_text(title, 10, 40, 50, Color::BLACK);
 }
 
 fn main() {
@@ -30,11 +40,19 @@ fn main() {
         .size(size_tuple.0, size_tuple.1)
         .build();
 
-    (&Keyboard::F8).bind(move |_| {
-        println!("quitting");
-        let mut exit = exit_window_clone.lock().unwrap();
-        *exit = true;
-    });
+    bind_key(
+        Keyboard::F8,
+        Action {
+            callback: Box::new(move |_, _| {
+                println!("quitting");
+                let mut exit = exit_window_clone.lock().unwrap();
+                *exit = true;
+            }),
+            inhibit: InhibitEvent::Yes,
+            sequencer: false,
+            defer: true,
+        },
+    );
 
     rl.set_exit_key(Some(KeyboardKey::KEY_F8));
     let mut pong = Pong::new();
@@ -63,13 +81,12 @@ fn main() {
             a: 0,
         });
 
-        d.draw_text(&format!("{:?}", delta_time), 10, 10, 100, Color::BLACK);
-
+        
         if pong.finished {
             pong.reset();
             now = SystemTime::now();
-        }
-        if now.elapsed().unwrap() > cooldown {
+        }else if now.elapsed().unwrap() > cooldown {
+            draw_title(&mut d, "pong");
             (&mut pong).draw_frame(d, delta_time);
         }
         

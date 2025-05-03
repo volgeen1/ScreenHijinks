@@ -91,8 +91,11 @@ impl Pong {
             self.paddle2.x ,
         );
 
-        if paddle1rec.check_collision_circle_rec(self.ball_pos, self.ball_size) || paddle2rec.check_collision_circle_rec(self.ball_pos, self.ball_size) {
-            self.ball_speed.x *= -1.0;
+        let ball_speed = 300.0;
+        if paddle1rec.check_collision_circle_rec(self.ball_pos, self.ball_size) {
+            self.ball_speed.x = ball_speed;
+        }else if paddle2rec.check_collision_circle_rec(self.ball_pos, self.ball_size) {
+            self.ball_speed.x = ball_speed * -1.0;
         }else if self.ball_pos.x >= (self.game_size.x + self.game_size.width - self.ball_size)
             || (self.ball_pos.x <= self.ball_size + self.game_size.x)
         {

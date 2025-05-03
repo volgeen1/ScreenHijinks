@@ -1,10 +1,10 @@
 #![windows_subsystem = "windows"]
-use game::Pong;
+use pong::Pong;
 use mki::Keyboard;
 use raylib::{ffi::SetConfigFlags, prelude::*};
 use std::sync::{Arc, Mutex};
 use winapi::um::winuser::*;
-mod game;
+mod pong;
 
 fn screen_size() -> (i32, i32) {
     unsafe {

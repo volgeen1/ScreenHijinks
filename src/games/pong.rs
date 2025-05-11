@@ -1,3 +1,4 @@
+use crate::game_handler::Game;
 use mki::Keyboard;
 use raylib::prelude::*;
 
@@ -38,7 +39,7 @@ impl Pong {
         }
     }
 
-    pub fn reset(&mut self) {
+    fn reset(&mut self) {
         self.ball_pos = Vector2 {
             x: self.game_size.x + (self.game_size.width / 2.0),
             y: self.game_size.y + (self.game_size.height / 2.0),
@@ -76,7 +77,9 @@ impl Pong {
         // paddle2 ai
         if self.ball_pos.y < self.paddle2.y + self.game_size.y + (self.game_size.height / 2.0) {
             self.paddle2.y -= paddle_speed * delta_time;
-        }else if self.ball_pos.y > self.paddle2.y + self.game_size.y + (self.game_size.height / 2.0) {
+        } else if self.ball_pos.y
+            > self.paddle2.y + self.game_size.y + (self.game_size.height / 2.0)
+        {
             self.paddle2.y += paddle_speed * delta_time;
         }
     }
@@ -86,25 +89,23 @@ impl Pong {
         self.ball_pos.y += self.ball_speed.y * delta_time;
         let paddle1rec = Rectangle::new(
             self.game_size.x + 15.0,
-            self.game_size.y + self.game_size.height / 2.0 + self.paddle1.y
-                - self.paddle1.x / 2.0,
+            self.game_size.y + self.game_size.height / 2.0 + self.paddle1.y - self.paddle1.x / 2.0,
             self.paddle1.z,
-            self.paddle1.x ,
+            self.paddle1.x,
         );
         let paddle2rec = Rectangle::new(
             self.game_size.x + self.game_size.width - 15.0 - 20.0,
-            self.game_size.y + self.game_size.height / 2.0 + self.paddle2.y
-                - self.paddle2.x / 2.0,
+            self.game_size.y + self.game_size.height / 2.0 + self.paddle2.y - self.paddle2.x / 2.0,
             self.paddle2.z,
-            self.paddle2.x ,
+            self.paddle2.x,
         );
 
         let ball_speed = 300.0;
         if paddle1rec.check_collision_circle_rec(self.ball_pos, self.ball_size) {
             self.ball_speed.x = ball_speed;
-        }else if paddle2rec.check_collision_circle_rec(self.ball_pos, self.ball_size) {
+        } else if paddle2rec.check_collision_circle_rec(self.ball_pos, self.ball_size) {
             self.ball_speed.x = ball_speed * -1.0;
-        }else if self.ball_pos.x >= (self.game_size.x + self.game_size.width - self.ball_size)
+        } else if self.ball_pos.x >= (self.game_size.x + self.game_size.width - self.ball_size)
             || (self.ball_pos.x <= self.ball_size + self.game_size.x)
         {
             self.finished = true;
@@ -135,18 +136,7 @@ impl Pong {
         );
     }
 
-    pub fn set_game_size(&mut self, game_size: Rectangle) {
-        self.game_size.x = game_size.x;
-        self.game_size.y = game_size.y;
-        self.game_size.width = game_size.width;
-        self.game_size.height = game_size.height;
-        self.ball_pos.x = game_size.x + (game_size.width / 2.0);
-        self.ball_pos.y = game_size.y + (game_size.height / 2.0);
-    }
-
-    pub fn draw_frame(&mut self, mut d: RaylibDrawHandle, delta_time: f32) {
-        (&mut *self).pong_logic(delta_time);
-
+    fn draw_frame(&mut self, mut d: RaylibDrawHandle) {
         d.draw_rectangle(
             self.game_size.x as i32,
             self.game_size.y as i32,
@@ -164,4 +154,45 @@ impl Pong {
 
         (*self).draw_paddles(d);
     }
+
+    fn set_game_size(&mut self, game_size: Rectangle) {
+        self.game_size.x = game_size.x;
+        self.game_size.y = game_size.y;
+        self.game_size.width = game_size.width;
+        self.game_size.height = game_size.height;
+        self.ball_pos.x = game_size.x + (game_size.width / 2.0);
+        self.ball_pos.y = game_size.y + (game_size.height / 2.0);
+    }
 }
+
+impl Game for Pong {
+    fn init(&mut self, rect: Rectangle) {
+        self.set_game_size(rect);
+    }
+
+    fn logic(&mut self, delta_time: f32) {
+        self.pong_logic(delta_time);
+    }
+
+    fn draw(&mut self, d: RaylibDrawHandle) {
+        self.draw_frame(d);
+    }
+
+    fn is_finished(&mut self) -> bool {
+        if self.finished {
+            (&mut *self).reset();
+            true
+        } else {
+            false
+        }
+    }
+}
+
+/*
+Rectangle{
+    x: ((size_tuple.0 / 2) - (game_size.0 / 2)) as f32,
+    y: ((size_tuple.1 / 2) - (game_size.1 / 2)) as f32,
+    width: game_size.0 as f32,
+    height: game_size.1 as f32,
+};
+*/

@@ -1,12 +1,11 @@
 #![windows_subsystem = "windows"]
-use mki::{bind_key, Action, InhibitEvent, Keyboard};
+use mki::{Action, InhibitEvent, Keyboard, bind_key};
 use raylib::{ffi::SetConfigFlags, prelude::*};
-use rand::prelude::*;
-use std::{sync::{Arc, Mutex}, time::{Duration, SystemTime}};
+use std::sync::{Arc, Mutex};
 use winapi::um::winuser::*;
-mod pong;
-use pong::Pong;
-mod circles;
+mod game_handler;
+mod games;
+use game_handler::GameHandler;
 
 fn screen_size() -> (i32, i32) {
     unsafe {
@@ -30,15 +29,15 @@ fn main() {
     let exit_window_clone = exit_window.clone();
     let size_tuple = screen_size();
 
-    // flags are in order: borderless, mouse passthrough, window topmost, vsync, transparent, undecorated
+    // flags are in order: borderless, mouse passthrough, window topmost, window maximized, vsync, transparent, undecorated
     let flags: u32 = 32_768 + 16_384 + 4_096 + 64 + 16 + 8;
     unsafe {
         SetConfigFlags(flags);
     }
     let (mut rl, thread) = raylib::init()
-        .title("Borderless Fullscreen")
-        .size(size_tuple.0, size_tuple.1)
-        .build();
+    .title("Borderless Fullscreen")
+    .size(size_tuple.0, size_tuple.1)
+    .build();
 
     bind_key(
         Keyboard::F8,
@@ -55,21 +54,22 @@ fn main() {
     );
 
     rl.set_exit_key(Some(KeyboardKey::KEY_F8));
-    let mut pong = Pong::new();
 
     let game_size: (i32, i32) = (800, 400);
 
-    pong.set_game_size(Rectangle {
+    let mut game_handler = GameHandler::new();
+
+    game_handler.select_game();
+
+    let game_rect = Rectangle {
         x: ((size_tuple.0 / 2) - (game_size.0 / 2)) as f32,
         y: ((size_tuple.1 / 2) - (game_size.1 / 2)) as f32,
         width: game_size.0 as f32,
         height: game_size.1 as f32,
-    });
+    };
+    game_handler.start_game(game_rect);
 
-    let mut rng = rand::rng();
-    let mut now = SystemTime::now();
-    let cooldown = Duration::from_secs(rng.random_range(5..15) * 1);
-
+    println!("entering loop");
     while !*exit_window.lock().unwrap() {
         let delta_time = rl.get_frame_time();
 
@@ -81,14 +81,11 @@ fn main() {
             a: 0,
         });
 
-        
-        if pong.finished {
-            pong.reset();
-            now = SystemTime::now();
-        }else if now.elapsed().unwrap() > cooldown {
+        if game_handler.finished() {
+            println!("yippie");
+        } else if game_handler.ready() {
             draw_title(&mut d, "pong");
-            (&mut pong).draw_frame(d, delta_time);
+            game_handler.do_frame(delta_time, d);
         }
-        
     }
 }

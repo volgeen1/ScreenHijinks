@@ -1,6 +1,7 @@
 use crate::game_handler::Game;
 use mki::Keyboard;
 use raylib::prelude::*;
+use rand::prelude::*;
 
 #[derive(Copy, Clone)]
 pub struct Pong {
@@ -10,14 +11,23 @@ pub struct Pong {
     paddle1: Vector3,
     paddle2: Vector3,
     game_size: Rectangle,
+    screen_size: (i32, i32),
     pub finished: bool,
 }
 
 impl Pong {
-    pub fn new() -> Pong {
+    pub fn new(screen_size: (i32, i32)) -> Pong {
+        let game_size: (i32, i32) = (800, 400);
+        let game_rect = Rectangle {
+            x: ((screen_size.0 / 2) - (game_size.0 / 2)) as f32,
+            y: ((screen_size.1 / 2) - (game_size.1 / 2)) as f32,
+            width: game_size.0 as f32,
+            height: game_size.1 as f32,
+        };
+
         Pong {
             ball_size: 12.0,
-            ball_pos: Vector2 { x: 0.0, y: 0.0 },
+            ball_pos: Vector2 { x: game_rect.x + (game_rect.width / 2.0), y: game_rect.y + (game_rect.height / 2.0) },
             ball_speed: Vector2 { x: 300.0, y: 300.0 },
             paddle1: Vector3 {
                 x: 100.0,
@@ -29,12 +39,8 @@ impl Pong {
                 y: 0.0,
                 z: 20.0,
             },
-            game_size: Rectangle {
-                x: 0.0,
-                y: 0.0,
-                width: 0.0,
-                height: 0.0,
-            },
+            game_size: game_rect,
+            screen_size: screen_size,
             finished: false,
         }
     }
@@ -54,11 +60,26 @@ impl Pong {
             y: 0.0,
             z: 20.0,
         };
+
+
+        let mut rng = rand::rng();
+        let game_size_x = rng.random_range(800..(self.screen_size.0 as f32 * 0.8) as i32);
+        let game_size_y = rng.random_range(400..(self.screen_size.1 as f32 * 0.8) as i32);
+
+        let game_rect = Rectangle {
+            x: ((self.screen_size.0 / 2) - (game_size_x / 2)) as f32,
+            y: ((self.screen_size.1 / 2) - (game_size_y / 2)) as f32,
+            width: game_size_x as f32,
+            height: game_size_y as f32,
+        };
+
+        self.game_size = game_rect;
         self.finished = false;
     }
 
     fn pong_logic(&mut self, delta_time: f32) {
-        let paddle_speed = 150.0;
+        let paddle_speed = 200.0;
+        let ai_speed = 230.0;
 
         self.pong_ball(delta_time);
 
@@ -76,11 +97,11 @@ impl Pong {
 
         // paddle2 ai
         if self.ball_pos.y < self.paddle2.y + self.game_size.y + (self.game_size.height / 2.0) {
-            self.paddle2.y -= paddle_speed * delta_time;
+            self.paddle2.y -= ai_speed * delta_time;
         } else if self.ball_pos.y
             > self.paddle2.y + self.game_size.y + (self.game_size.height / 2.0)
         {
-            self.paddle2.y += paddle_speed * delta_time;
+            self.paddle2.y += ai_speed * delta_time;
         }
     }
 
@@ -117,7 +138,7 @@ impl Pong {
         }
     }
 
-    fn draw_paddles(self, mut d: RaylibDrawHandle) {
+    fn draw_paddles(self, mut d: &mut RaylibDrawHandle) {
         d.draw_rectangle(
             self.game_size.x as i32 + 15,
             self.game_size.y as i32 + self.game_size.height as i32 / 2 + self.paddle1.y as i32
@@ -136,7 +157,7 @@ impl Pong {
         );
     }
 
-    fn draw_frame(&mut self, mut d: RaylibDrawHandle) {
+    fn draw_frame(&mut self, mut d: &mut RaylibDrawHandle) {
         d.draw_rectangle(
             self.game_size.x as i32,
             self.game_size.y as i32,
@@ -154,27 +175,18 @@ impl Pong {
 
         (*self).draw_paddles(d);
     }
-
-    fn set_game_size(&mut self, game_size: Rectangle) {
-        self.game_size.x = game_size.x;
-        self.game_size.y = game_size.y;
-        self.game_size.width = game_size.width;
-        self.game_size.height = game_size.height;
-        self.ball_pos.x = game_size.x + (game_size.width / 2.0);
-        self.ball_pos.y = game_size.y + (game_size.height / 2.0);
-    }
 }
 
 impl Game for Pong {
-    fn init(&mut self, rect: Rectangle) {
-        self.set_game_size(rect);
+    fn get_name(&mut self) -> &str {
+        "Pong" as &str
     }
 
-    fn logic(&mut self, delta_time: f32) {
+    fn logic(&mut self, mouse_pos: Vector2, delta_time: f32) {
         self.pong_logic(delta_time);
     }
 
-    fn draw(&mut self, d: RaylibDrawHandle) {
+    fn draw(&mut self, d: &mut RaylibDrawHandle) {
         self.draw_frame(d);
     }
 

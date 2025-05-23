@@ -43,8 +43,7 @@ impl GameHandler {
 
     pub fn select_game(&mut self) {
         let mut rng = rand::rng(); // use correct thread_rng
-        //let num = rng.random_range(0..self.game_list.len());
-        let num = 2;
+        let num = rng.random_range(0..self.game_list.len());
         self.selected = Some(num);
         println!("selected: {num}");
     }

@@ -1,13 +1,11 @@
 //#![windows_subsystem = "windows"]
 use mki::{Action, InhibitEvent, Keyboard, bind_key};
-use raylib::{
-    ffi::{GetMousePosition, SetConfigFlags},
-    prelude::*,
-};
+use raylib::{ffi::SetConfigFlags, prelude::*};
 use std::sync::{Arc, Mutex};
 use winapi::um::winuser::*;
 mod game_handler;
 mod games;
+mod util;
 use game_handler::GameHandler;
 
 fn screen_size() -> (i32, i32) {

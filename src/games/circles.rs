@@ -1,12 +1,16 @@
-use crate::game_handler::Game;
+use crate::{game_handler::Game, util::Timer};
 use mki::Mouse;
 use rand::prelude::*;
-use raylib::prelude::*;
+use raylib::{ffi::MeasureText, prelude::*};
+use std::{ffi::CString, time::Duration};
 
 pub struct Circles {
+    timer: Timer,
     amount: i32,
+    max_amount: i32,
     circles: Vec<(Vector2, f32)>,
     game_size: Rectangle,
+    lost: bool,
 }
 
 fn place_circles(amount: i32, rect: Rectangle) -> Vec<(Vector2, f32)> {
@@ -31,23 +35,31 @@ fn place_circles(amount: i32, rect: Rectangle) -> Vec<(Vector2, f32)> {
 }
 
 impl Circles {
-    pub fn new(screen_size: (i32, i32)) -> Circles {
+    pub fn new(screen_size: (i32, i32), amount: i32, max_amount: i32, time: Duration) -> Circles {
         let game_rect = Rectangle {
             x: screen_size.0 as f32 * 0.1,
             y: screen_size.1 as f32 * 0.1,
             width: screen_size.0 as f32 * 0.8,
             height: screen_size.1 as f32 * 0.8,
         };
-        let amount = 4;
         let vec_circles = place_circles(amount, game_rect);
         Circles {
+            timer: Timer::new(time),
             amount: amount,
+            max_amount: max_amount,
             circles: (vec_circles),
             game_size: game_rect,
+            lost: false,
         }
     }
 
-    fn logic(&mut self, mouse_pos: Vector2, delta_time: f32) {
+    fn circle_logic(&mut self, mouse_pos: Vector2, _delta_time: f32) {
+        self.timer.update(_delta_time);
+
+        if self.timer.is_finished() {
+            self.lost = true;
+        }
+
         if Mouse::Left.is_pressed() {
             self.circles
                 .retain(|(pos, radius)| pos.distance_to(mouse_pos) > *radius);
@@ -59,30 +71,63 @@ impl Circles {
         for circle in cirlces {
             d.draw_circle(circle.0.x as i32, circle.0.y as i32, circle.1, Color::RED);
         }
+        unsafe {
+            let time_left = self.timer.time_left();
+            let text = CString::new(format!("{:?}", time_left as i32)).unwrap();
+            d.draw_text(
+                &format!("{}", text.to_str().unwrap()),
+                (self.game_size.x * 2.0 + self.game_size.width) as i32 / 2
+                    - (MeasureText(text.as_ptr() as *const i8, 50) as i32 / 2)
+                    + 2,
+                self.game_size.y as i32 + 1,
+                50,
+                Color::BLACK,
+            );
+            d.draw_text(
+                &format!("{}", text.to_str().unwrap()),
+                (self.game_size.x * 2.0 + self.game_size.width) as i32 / 2
+                    - (MeasureText(text.as_ptr() as *const i8, 50) as i32 / 2)
+                    - 2,
+                self.game_size.y as i32 - 1,
+                50,
+                Color::BLACK,
+            );
+            d.draw_text(
+                &format!("{}", text.to_str().unwrap()),
+                (self.game_size.x * 2.0 + self.game_size.width) as i32 / 2
+                    - (MeasureText(text.as_ptr() as *const i8, 50) as i32 / 2),
+                self.game_size.y as i32,
+                50,
+                Color::RED,
+            );
+        }
     }
 }
 
 impl Game for Circles {
-    fn get_name(&mut self) -> &str {
+    fn get_info(&mut self) -> &str {
         "Circles" as &str
     }
 
     fn logic(&mut self, mouse_pos: Vector2, delta_time: f32) {
-        self.logic(mouse_pos, delta_time);
+        self.circle_logic(mouse_pos, delta_time);
     }
 
     fn draw(&mut self, d: &mut RaylibDrawHandle) {
         self.draw_frame(d);
     }
 
-    fn is_finished(&mut self) -> bool {
-      if self.circles.len() < 1 {
-        let amount = (self.amount + 1).clamp(1, 10);
-        self.amount = amount;
-        self.circles = place_circles(amount, self.game_size);
-        true
-      }else {
-        false
-      }
+    fn is_finished(&mut self) -> (bool, bool) {
+        if self.circles.len() < 1 || self.lost {
+            let amount = (self.amount + 1).clamp(1, self.max_amount);
+            self.amount = amount;
+            self.circles = place_circles(amount, self.game_size);
+            self.timer.reset();
+            let lost = self.lost;
+            self.lost = false;
+            (true, lost)
+        } else {
+            (false, self.lost)
+        }
     }
 }

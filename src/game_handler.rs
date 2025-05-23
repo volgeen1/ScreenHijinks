@@ -1,4 +1,4 @@
-use crate::games::{circles::Circles, pong::Pong};
+use crate::games::{avoider::Avoider, circles::Circles, pong::Pong};
 use rand::prelude::*;
 use raylib::prelude::*;
 use std::time::{Duration, SystemTime};
@@ -24,7 +24,11 @@ impl GameHandler {
         GameHandler {
             now: SystemTime::now(),
             cooldown: Duration::from_secs(5),
-            game_list: vec![Box::new(Pong::new(screen_size)), Box::new(Circles::new(screen_size))],
+            game_list: vec![
+                Box::new(Pong::new(screen_size)),
+                Box::new(Circles::new(screen_size, 4, 10, Duration::from_secs(5))),
+                Box::new(Avoider::new(screen_size, Duration::from_secs(15), Duration::from_millis(600))),
+            ],
             selected: None,
         }
     }
@@ -39,7 +43,8 @@ impl GameHandler {
 
     pub fn select_game(&mut self) {
         let mut rng = rand::rng(); // use correct thread_rng
-        let num = rng.random_range(0..self.game_list.len());
+        //let num = rng.random_range(0..self.game_list.len());
+        let num = 2;
         self.selected = Some(num);
         println!("selected: {num}");
     }
@@ -48,15 +53,16 @@ impl GameHandler {
         if let Some(index) = self.selected {
             let game = &mut self.game_list[index];
             game.logic(mouse_pos, delta_time);
-            game.draw( d);
-            draw_title(d, game.get_name());
+            game.draw(d);
+            draw_title(d, game.get_info());
         }
     }
 
     pub fn finished(&mut self) -> bool {
         if let Some(index) = self.selected {
             let game = &mut self.game_list[index];
-            if game.is_finished() {
+            let game_over = game.is_finished();
+            if game_over.0 {
                 self.now = SystemTime::now();
                 self.select_game();
                 return true;
@@ -70,8 +76,12 @@ impl GameHandler {
 }
 
 pub trait Game {
-    fn get_name(&mut self) -> &str;
+    // gets name of the game
+    fn get_info(&mut self) -> &str;
+    // main logic of the game
     fn logic(&mut self, mouse_pos: Vector2, delta_time: f32);
+    // drawing the frame of the game
     fn draw(&mut self, d: &mut RaylibDrawHandle);
-    fn is_finished(&mut self) -> bool;
+    // returns 2 bools, (over?, lost?)
+    fn is_finished(&mut self) -> (bool, bool);
 }

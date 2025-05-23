@@ -1,7 +1,7 @@
 use crate::game_handler::Game;
 use mki::Keyboard;
-use raylib::prelude::*;
 use rand::prelude::*;
+use raylib::prelude::*;
 
 #[derive(Copy, Clone)]
 pub struct Pong {
@@ -13,6 +13,7 @@ pub struct Pong {
     game_size: Rectangle,
     screen_size: (i32, i32),
     pub finished: bool,
+    lost: bool,
 }
 
 impl Pong {
@@ -27,7 +28,10 @@ impl Pong {
 
         Pong {
             ball_size: 12.0,
-            ball_pos: Vector2 { x: game_rect.x + (game_rect.width / 2.0), y: game_rect.y + (game_rect.height / 2.0) },
+            ball_pos: Vector2 {
+                x: game_rect.x + (game_rect.width / 2.0),
+                y: game_rect.y + (game_rect.height / 2.0),
+            },
             ball_speed: Vector2 { x: 300.0, y: 300.0 },
             paddle1: Vector3 {
                 x: 100.0,
@@ -42,6 +46,7 @@ impl Pong {
             game_size: game_rect,
             screen_size: screen_size,
             finished: false,
+            lost: false,
         }
     }
 
@@ -60,7 +65,6 @@ impl Pong {
             y: 0.0,
             z: 20.0,
         };
-
 
         let mut rng = rand::rng();
         let game_size_x = rng.random_range(800..(self.screen_size.0 as f32 * 0.8) as i32);
@@ -127,9 +131,15 @@ impl Pong {
         } else if paddle2rec.check_collision_circle_rec(self.ball_pos, self.ball_size) {
             self.ball_speed.x = ball_speed * -1.0;
         } else if self.ball_pos.x >= (self.game_size.x + self.game_size.width - self.ball_size)
-            || (self.ball_pos.x <= self.ball_size + self.game_size.x)
+        /* if hits right side */
         {
             self.finished = true;
+            self.lost = false;
+        } else if self.ball_pos.x <= self.ball_size + self.game_size.x
+        /* if hit left side */
+        {
+            self.finished = true;
+            self.lost = true;
         }
         if self.ball_pos.y >= (self.game_size.y + self.game_size.height - self.ball_size)
             || (self.ball_pos.y <= self.ball_size + self.game_size.y)
@@ -138,7 +148,7 @@ impl Pong {
         }
     }
 
-    fn draw_paddles(self, mut d: &mut RaylibDrawHandle) {
+    fn draw_paddles(self, d: &mut RaylibDrawHandle) {
         d.draw_rectangle(
             self.game_size.x as i32 + 15,
             self.game_size.y as i32 + self.game_size.height as i32 / 2 + self.paddle1.y as i32
@@ -157,13 +167,13 @@ impl Pong {
         );
     }
 
-    fn draw_frame(&mut self, mut d: &mut RaylibDrawHandle) {
+    fn draw_frame(&mut self, d: &mut RaylibDrawHandle) {
         d.draw_rectangle(
             self.game_size.x as i32,
             self.game_size.y as i32,
             self.game_size.width as i32,
             self.game_size.height as i32,
-            raylib::prelude::Color::WHITE,
+            raylib::prelude::Color::DARKGRAY,
         );
 
         d.draw_circle(
@@ -178,11 +188,11 @@ impl Pong {
 }
 
 impl Game for Pong {
-    fn get_name(&mut self) -> &str {
+    fn get_info(&mut self) -> &str {
         "Pong" as &str
     }
 
-    fn logic(&mut self, mouse_pos: Vector2, delta_time: f32) {
+    fn logic(&mut self, _mouse_pos: Vector2, delta_time: f32) {
         self.pong_logic(delta_time);
     }
 
@@ -190,21 +200,12 @@ impl Game for Pong {
         self.draw_frame(d);
     }
 
-    fn is_finished(&mut self) -> bool {
+    fn is_finished(&mut self) -> (bool, bool) {
         if self.finished {
             (&mut *self).reset();
-            true
+            (true, self.lost)
         } else {
-            false
+            (false, self.lost)
         }
     }
 }
-
-/*
-Rectangle{
-    x: ((size_tuple.0 / 2) - (game_size.0 / 2)) as f32,
-    y: ((size_tuple.1 / 2) - (game_size.1 / 2)) as f32,
-    width: game_size.0 as f32,
-    height: game_size.1 as f32,
-};
-*/

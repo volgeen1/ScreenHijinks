@@ -1,0 +1,19 @@
+Settings:
+  - 15.0    # cooldown: controls the time between games in seconds
+
+Pong:
+  - true    # enabled: controls if the game mode is active
+  - 300     # ball_speed: speed of the ball movement in pixels per second
+  - 200     # paddle_speed: speed of player paddle movement
+  - 230     # ai_paddle_speed: speed of AI paddle movement
+
+Circles:
+  - true    # enabled: controls if the game mode is active
+  - 4       # min_amount: minimum number of circles to spawn
+  - 10      # max_amount: maximum number of circles to spawn
+  - 5.0       # time_limit: time limit for the game mode in seconds
+
+Avoider:
+  - true    # enabled: controls if the game mode is active
+  - 15.0      # time_limit: time limit for the game mode in seconds
+  - 0.6     # spawn_timer: time between object spawns in seconds

@@ -1,7 +1,6 @@
 use crate::game_handler::Game;
 use crate::util::Timer;
-use rand::Rng;
-use rand::rngs::ThreadRng;
+use rand::{Rng, rngs::ThreadRng};
 use std::{ffi::CString, time::Duration};
 use {raylib::ffi::MeasureText, raylib::prelude::*};
 
@@ -14,6 +13,7 @@ pub struct Avoider {
     timer: Timer,
     spawn_timer: Timer,
     rng: ThreadRng,
+    lost: bool
 }
 
 impl Avoider {
@@ -33,6 +33,7 @@ impl Avoider {
             timer: Timer::new(length),
             spawn_timer: Timer::new(spawn_timer),
             rng: rand::rng(),
+            lost: false,
         }
     }
 
@@ -69,6 +70,9 @@ impl Avoider {
         let mut updated_enemies: Vec<(Vector2, Vector2)> = vec![];
 
         for &enemy in &enemies {
+            if enemy.0.distance_to(self.player_pos) < self.player_size + self.enemy_size {
+                self.lost = true;
+            }
             if enemy.0.x > self.game_size.x + self.game_size.width ||
                enemy.0.x < self.game_size.x ||
                enemy.0.y > self.game_size.y + self.game_size.height ||
@@ -172,13 +176,18 @@ impl Game for Avoider {
         self.draw_frame(d);
     }
 
-    fn is_finished(&mut self) -> (bool, bool) {
-        if self.timer.is_finished() {
+    fn is_finished(&mut self) -> Option<bool> {
+        if self.timer.is_finished()  {
             (*self).timer.reset();
             self.enemies.clear();
-            (true, false)
+            Some(false)
+        } else if self.lost {
+            self.lost = false;
+            (*self).timer.reset();
+            self.enemies.clear();
+            Some(true)
         } else {
-            (false, false)
+            None
         }
     }
 }

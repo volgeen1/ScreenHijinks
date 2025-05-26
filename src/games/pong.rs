@@ -200,12 +200,12 @@ impl Game for Pong {
         self.draw_frame(d);
     }
 
-    fn is_finished(&mut self) -> (bool, bool) {
+    fn is_finished(&mut self) -> Option<bool> {
         if self.finished {
             (&mut *self).reset();
-            (true, self.lost)
+            Some(self.lost)
         } else {
-            (false, self.lost)
+            None
         }
     }
 }

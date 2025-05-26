@@ -4,9 +4,12 @@ use raylib::{ffi::SetConfigFlags, prelude::*};
 use std::sync::{Arc, Mutex};
 use winapi::um::winuser::*;
 mod game_handler;
+mod loss_handler;
 mod games;
+mod effects;
 mod util;
 use game_handler::GameHandler;
+use loss_handler::LossHandler;
 
 fn screen_size() -> (i32, i32) {
     unsafe {
@@ -79,9 +82,11 @@ fn main() {
 
     rl.set_exit_key(Some(KeyboardKey::KEY_F8));
 
-    let mut game_handler = GameHandler::new(size_tuple);
+    let mut game_handler = GameHandler::new(size_tuple).unwrap();
+    let mut loss_handler = LossHandler::new(size_tuple);
 
     game_handler.select_game();
+    loss_handler.select_effect();
     println!("entering loop");
     while !*exit_window.lock().unwrap() {
         let mouse_pos = get_mouse_pos();
@@ -95,8 +100,14 @@ fn main() {
             a: 0,
         });
 
-        if game_handler.finished() {
-            println!("game finished. debuff should play if lost");
+        if !loss_handler.finished() {
+            loss_handler.do_effect(&mut d, delta_time);
+            continue;
+        }
+        if let Some(result) =game_handler.finished() {
+            if result {
+                loss_handler.do_effect(&mut d, delta_time);
+            }
         } else if game_handler.ready() {
             game_handler.do_frame(delta_time, mouse_pos, &mut d);
         }

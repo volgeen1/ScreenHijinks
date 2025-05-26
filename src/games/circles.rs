@@ -117,7 +117,7 @@ impl Game for Circles {
         self.draw_frame(d);
     }
 
-    fn is_finished(&mut self) -> (bool, bool) {
+    fn is_finished(&mut self) -> Option<bool> {
         if self.circles.len() < 1 || self.lost {
             let amount = (self.amount + 1).clamp(1, self.max_amount);
             self.amount = amount;
@@ -125,9 +125,9 @@ impl Game for Circles {
             self.timer.reset();
             let lost = self.lost;
             self.lost = false;
-            (true, lost)
+            Some(lost)
         } else {
-            (false, self.lost)
+            None
         }
     }
 }

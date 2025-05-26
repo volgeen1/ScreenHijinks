@@ -1,10 +1,9 @@
 use crate::games::{avoider::Avoider, circles::Circles, pong::Pong};
 use rand::prelude::*;
 use raylib::prelude::*;
-use std::fs;
 use std::time::{Duration, SystemTime};
 use std::{fs::File, io::Read};
-use yaml_rust2::{YamlEmitter, YamlLoader};
+use yaml_rust2::YamlLoader;
 
 fn draw_title(d: &mut RaylibDrawHandle, title: &str) {
     d.draw_text("current game:", 9, 9, 30, Color::WHITE);

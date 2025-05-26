@@ -5,7 +5,6 @@ use raylib::prelude::RaylibDrawHandle;
 use std::time::Duration;
 
 pub struct LossHandler {
-    duration: Timer,
     effect_list: Vec<Box<dyn Effect>>,
     selected: Option<usize>,
     finished: bool
@@ -14,7 +13,6 @@ pub struct LossHandler {
 impl LossHandler {
     pub fn new(screen_size: (i32, i32)) -> LossHandler {
         LossHandler {
-            duration: Timer::new(Duration::from_secs(10)),
             effect_list: vec![Box::new(Flash::new(screen_size, Duration::from_secs(5)))],
             selected: None,
             finished: true,

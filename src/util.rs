@@ -1,4 +1,4 @@
-use std::{time::Duration, fs::File};
+use std::time::Duration;
 
 pub struct Timer {
     duration: Duration,

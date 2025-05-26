@@ -1,5 +1,4 @@
 use crate::effects::{screen_flash::Flash};
-use crate::util::Timer;
 use rand::prelude::*;
 use raylib::prelude::RaylibDrawHandle;
 use std::time::Duration;

@@ -1,5 +1,6 @@
 use crate::{game_handler::Game, util::Timer};
 use mki::Mouse;
+use yaml_rust2::Yaml;
 use rand::prelude::*;
 use raylib::{ffi::MeasureText, prelude::*};
 use std::{ffi::CString, time::Duration};
@@ -35,16 +36,21 @@ fn place_circles(amount: i32, rect: Rectangle) -> Vec<(Vector2, f32)> {
 }
 
 impl Circles {
-    pub fn new(screen_size: (i32, i32), amount: i32, max_amount: i32, time: Duration) -> Circles {
+    pub fn new(screen_size: (i32, i32), settings: &Vec<Yaml>) -> Circles {
         let game_rect = Rectangle {
             x: screen_size.0 as f32 * 0.1,
             y: screen_size.1 as f32 * 0.1,
             width: screen_size.0 as f32 * 0.8,
             height: screen_size.1 as f32 * 0.8,
         };
+        
+        let amount = settings[1].as_i64().unwrap() as i32;
+        let max_amount = settings[2].as_i64().unwrap() as i32;
+        let time = settings[3].as_f64().unwrap();
         let vec_circles = place_circles(amount, game_rect);
+
         Circles {
-            timer: Timer::new(time),
+            timer: Timer::new(Duration::from_secs_f64(time)),
             amount: amount,
             max_amount: max_amount,
             circles: (vec_circles),

@@ -1,5 +1,6 @@
 use crate::game_handler::Game;
 use crate::util::Timer;
+use yaml_rust2::Yaml;
 use rand::{Rng, rngs::ThreadRng};
 use std::{ffi::CString, time::Duration};
 use {raylib::ffi::MeasureText, raylib::prelude::*};
@@ -17,21 +18,25 @@ pub struct Avoider {
 }
 
 impl Avoider {
-    pub fn new(screen_size: (i32, i32), length: Duration, spawn_timer: Duration) -> Avoider {
+    pub fn new(screen_size: (i32, i32), settings: &Vec<Yaml>) -> Avoider {
         let game_rect = Rectangle {
             x: 0.0,
             y: 0.0,
             width: screen_size.0 as f32,
             height: screen_size.1 as f32,
         };
+        
+        let time_length = settings[1].as_f64().unwrap();
+        let spawn_timer = settings[2].as_f64().unwrap();
+
         Avoider {
             player_pos: Vector2::new((screen_size.0 / 2) as f32, (screen_size.1 / 2) as f32),
             player_size: 20.0,
             enemies: vec![],
             enemy_size: 30.0,
             game_size: game_rect,
-            timer: Timer::new(length),
-            spawn_timer: Timer::new(spawn_timer),
+            timer: Timer::new(Duration::from_secs_f64(time_length)),
+            spawn_timer: Timer::new(Duration::from_secs_f64(spawn_timer)),
             rng: rand::rng(),
             lost: false,
         }

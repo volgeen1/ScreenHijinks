@@ -1,12 +1,12 @@
-//#![windows_subsystem = "windows"]
+#![windows_subsystem = "windows"]
 use mki::{Action, InhibitEvent, Keyboard, bind_key};
 use raylib::{ffi::SetConfigFlags, prelude::*};
 use std::sync::{Arc, Mutex};
 use winapi::um::winuser::*;
-mod game_handler;
-mod loss_handler;
-mod games;
 mod effects;
+mod game_handler;
+mod games;
+mod loss_handler;
 mod util;
 use game_handler::GameHandler;
 use loss_handler::LossHandler;
@@ -104,7 +104,7 @@ fn main() {
             loss_handler.do_effect(&mut d, delta_time);
             continue;
         }
-        if let Some(result) =game_handler.finished() {
+        if let Some(result) = game_handler.finished() {
             if result {
                 loss_handler.do_effect(&mut d, delta_time);
             }

@@ -1,5 +1,6 @@
 use crate::game_handler::Game;
 use mki::Keyboard;
+use yaml_rust2::Yaml;
 use rand::prelude::*;
 use raylib::prelude::*;
 
@@ -10,6 +11,8 @@ pub struct Pong {
     ball_speed: Vector2,
     paddle1: Vector3,
     paddle2: Vector3,
+    paddle_speed: f32,
+    ai_paddle_speed: f32,
     game_size: Rectangle,
     screen_size: (i32, i32),
     pub finished: bool,
@@ -17,7 +20,7 @@ pub struct Pong {
 }
 
 impl Pong {
-    pub fn new(screen_size: (i32, i32)) -> Pong {
+    pub fn new(screen_size: (i32, i32), settings: &Vec<Yaml>) -> Pong {
         let game_size: (i32, i32) = (800, 400);
         let game_rect = Rectangle {
             x: ((screen_size.0 / 2) - (game_size.0 / 2)) as f32,
@@ -32,7 +35,7 @@ impl Pong {
                 x: game_rect.x + (game_rect.width / 2.0),
                 y: game_rect.y + (game_rect.height / 2.0),
             },
-            ball_speed: Vector2 { x: 300.0, y: 300.0 },
+            ball_speed: Vector2 { x: settings[1].as_f64().unwrap() as f32 * 1.2, y: settings[1].as_f64().unwrap() as f32 },
             paddle1: Vector3 {
                 x: 100.0,
                 y: 0.0,
@@ -43,6 +46,8 @@ impl Pong {
                 y: 0.0,
                 z: 20.0,
             },
+            paddle_speed: settings[2].as_f64().unwrap() as f32,
+            ai_paddle_speed: settings[3].as_f64().unwrap() as f32,
             game_size: game_rect,
             screen_size: screen_size,
             finished: false,
@@ -82,9 +87,6 @@ impl Pong {
     }
 
     fn pong_logic(&mut self, delta_time: f32) {
-        let paddle_speed = 200.0;
-        let ai_speed = 230.0;
-
         self.pong_ball(delta_time);
 
         // paddle1 controls
@@ -92,20 +94,20 @@ impl Pong {
             && self.paddle1.y as i32 - self.paddle1.x as i32 / 2
                 > self.game_size.height as i32 / 2 * -1
         {
-            self.paddle1.y -= paddle_speed * delta_time;
+            self.paddle1.y -= self.paddle_speed * delta_time;
         } else if Keyboard::Down.is_pressed()
             && self.paddle1.y as i32 + self.paddle1.x as i32 / 2 < self.game_size.height as i32 / 2
         {
-            self.paddle1.y += paddle_speed * delta_time;
+            self.paddle1.y += self.paddle_speed * delta_time;
         }
 
         // paddle2 ai
         if self.ball_pos.y < self.paddle2.y + self.game_size.y + (self.game_size.height / 2.0) {
-            self.paddle2.y -= ai_speed * delta_time;
+            self.paddle2.y -= self.ai_paddle_speed * delta_time;
         } else if self.ball_pos.y
             > self.paddle2.y + self.game_size.y + (self.game_size.height / 2.0)
         {
-            self.paddle2.y += ai_speed * delta_time;
+            self.paddle2.y += self.ai_paddle_speed * delta_time;
         }
     }
 

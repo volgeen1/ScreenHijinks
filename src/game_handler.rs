@@ -50,6 +50,10 @@ impl GameHandler {
             .as_vec()
             .ok_or("Game Settings not found or invalid")?;
 
+        let pong_settings = settings["Pong"]
+            .as_vec()
+            .ok_or("Pong settings not found or invalid")?;
+
         let circles_settings = settings["Circles"]
             .as_vec()
             .ok_or("Circles settings not found or invalid")?;
@@ -58,6 +62,17 @@ impl GameHandler {
             .as_vec()
             .ok_or("Avoider settings not found or invalid")?;
 
+        let mut games: Vec<Box<dyn Game>> = vec![];
+        if pong_settings[0].as_bool().unwrap() {
+            games.push(Box::new(Pong::new(screen_size, pong_settings)));
+        }
+        if circles_settings[0].as_bool().unwrap() {
+            games.push(Box::new(Circles::new(screen_size, circles_settings)));
+        }
+        if avoider_settings[0].as_bool().unwrap() {
+            games.push(Box::new(Avoider::new(screen_size, avoider_settings)));
+        }
+
         Ok(GameHandler {
             now: SystemTime::now(),
             cooldown: Duration::from_secs_f32(
@@ -65,36 +80,7 @@ impl GameHandler {
                     .as_f64()
                     .ok_or("Invalid Game Settings cooldown")? as f32,
             ),
-            game_list: vec![
-                Box::new(Pong::new(screen_size)),
-                Box::new(Circles::new(
-                    screen_size,
-                    circles_settings[1]
-                        .as_i64()
-                        .ok_or("Invalid Circles min_amount")? as i32,
-                    circles_settings[2]
-                        .as_i64()
-                        .ok_or("Invalid Circles max_amount")? as i32,
-                    Duration::from_secs_f32(
-                        circles_settings[3]
-                            .as_f64()
-                            .ok_or("Invalid Circles time_limit")? as f32,
-                    ),
-                )),
-                Box::new(Avoider::new(
-                    screen_size,
-                    Duration::from_secs_f32(
-                        avoider_settings[1]
-                            .as_f64()
-                            .ok_or("Invalid Avoider parameter 1")? as f32,
-                    ),
-                    Duration::from_secs_f32(
-                        avoider_settings[2]
-                            .as_f64()
-                            .ok_or("Invalid Avoider parameter 2")? as f32,
-                    ),
-                )),
-            ],
+            game_list: games,
             selected: None,
         })
     }

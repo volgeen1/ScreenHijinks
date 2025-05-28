@@ -39,7 +39,7 @@ Game settings can be modified in `settings.yaml`:
 
 ```yaml
 Settings:
-  - 15.0    # Time between games (seconds)
+  - 120.0    # Time between games (seconds)
 
 Pong:
   - true    # Enable/disable game

@@ -31,7 +31,27 @@ impl GameHandler {
 
         // Check if file exists
         if !settings_path.exists() {
-            return Err("settings.yaml not found".into());
+            let settings_content = r#"Settings:
+                - 120.0    # Time between games (seconds)
+
+            Pong:
+                - true    # Enable/disable game
+                - 300.0   # Ball speed
+                - 200.0   # Paddle speed
+                - 200.0   # AI paddle speed
+
+            Circles:
+                - true    # Enable/disable game
+                - 4       # Minimum circles
+                - 10      # Maximum circles
+                - 5.0     # Time limit (seconds)
+
+            Avoider:
+                - true    # Enable/disable game
+                - 15.0    # Time limit (seconds)
+                - 0.6     # Object spawn interval (seconds)
+            "#;
+            std::fs::write(&settings_path, settings_content)?;
         }
 
         let mut file = File::open(&settings_path)?;

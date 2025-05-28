@@ -29,34 +29,38 @@ impl GameHandler {
             .ok_or("Could not get executable directory")?;
         let settings_path = exe_dir.join("settings.yaml");
 
+        let mut contents = String::new();
         // Check if file exists
         if !settings_path.exists() {
-            let settings_content = r#"Settings:
-                - 120.0    # Time between games (seconds)
+            println!("no settings file. creating one");
+                        let settings_content = 
+r#"Settings:
+    - 120.0    # Time between games (seconds)
+            
+Pong:
+  - true    # Enable/disable game
+  - 300.0   # Ball speed
+  - 200.0   # Paddle speed
+  - 200.0   # AI paddle speed
 
-            Pong:
-                - true    # Enable/disable game
-                - 300.0   # Ball speed
-                - 200.0   # Paddle speed
-                - 200.0   # AI paddle speed
+Circles:
+  - true    # Enable/disable game
+  - 4       # Minimum circles
+  - 10      # Maximum circles
+  - 5.0     # Time limit (seconds)
 
-            Circles:
-                - true    # Enable/disable game
-                - 4       # Minimum circles
-                - 10      # Maximum circles
-                - 5.0     # Time limit (seconds)
-
-            Avoider:
-                - true    # Enable/disable game
-                - 15.0    # Time limit (seconds)
-                - 0.6     # Object spawn interval (seconds)
-            "#;
+Avoider:
+  - true    # Enable/disable game
+  - 15.0    # Time limit (seconds)
+  - 0.6     # Object spawn interval (seconds)
+"#;
             std::fs::write(&settings_path, settings_content)?;
+            contents.push_str(settings_content);
+        } else {
+            println!("settings file found");
+            let mut file = File::open(&settings_path)?;
+            file.read_to_string(&mut contents)?;
         }
-
-        let mut file = File::open(&settings_path)?;
-        let mut contents = String::new();
-        file.read_to_string(&mut contents)?;
 
         let temp_settings = YamlLoader::load_from_str(&contents)?;
         if temp_settings.is_empty() {

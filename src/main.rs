@@ -1,4 +1,4 @@
-#![windows_subsystem = "windows"]
+//#![windows_subsystem = "windows"]
 use mki::{Action, InhibitEvent, Keyboard, bind_key};
 use raylib::{ffi::SetConfigFlags, prelude::*};
 use std::sync::{Arc, Mutex};
